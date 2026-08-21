@@ -11,17 +11,21 @@ import collectionBanner from "@/assets/collection-banner.jpg";
 import { cn } from "@/lib/utils";
 
 type Search = {
-  category?: string;
-  collection?: string;
-  occasion?: string;
+  category?: string | undefined;
+  collection?: string | undefined;
+  occasion?: string | undefined;
 };
 
 export const Route = createFileRoute("/collections")({
-  validateSearch: (search: Record<string, unknown>): Search => ({
-    category: typeof search.category === "string" ? search.category : undefined,
-    collection: typeof search.collection === "string" ? search.collection : undefined,
-    occasion: typeof search.occasion === "string" ? search.occasion : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): Search => {
+    const str = (v: unknown) => (typeof v === "string" && v ? v : undefined);
+    return {
+      category: str(search["category"]),
+      collection: str(search["collection"]),
+      occasion: str(search["occasion"]),
+    };
+  },
+
   head: () => ({
     meta: [
       { title: "Collections — Sarees & Girls Ethnic Wear | The Saree Edit" },

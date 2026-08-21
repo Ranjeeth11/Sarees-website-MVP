@@ -17,11 +17,10 @@ export function SearchOverlay() {
   }, [setSearchOpen]);
 
   useEffect(() => {
-    if (searchOpen) {
-      setQuery("");
-      const t = setTimeout(() => inputRef.current?.focus(), 80);
-      return () => clearTimeout(t);
-    }
+    if (!searchOpen) return undefined;
+    setQuery("");
+    const t = setTimeout(() => inputRef.current?.focus(), 80);
+    return () => clearTimeout(t);
   }, [searchOpen]);
 
   const results = useMemo(() => {
