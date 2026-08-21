@@ -11,6 +11,12 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { StoreProvider } from "@/context/StoreContext";
+import { Header } from "@/components/store/Header";
+import { Footer } from "@/components/store/Footer";
+import { CartDrawer } from "@/components/store/CartDrawer";
+import { SearchOverlay } from "@/components/store/SearchOverlay";
+import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (
@@ -119,8 +125,19 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <StoreProvider>
+        <div className="flex min-h-screen flex-col">
+          <Header />
+          <main className="flex-1">
+            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+            <Outlet />
+          </main>
+          <Footer />
+        </div>
+        <CartDrawer />
+        <SearchOverlay />
+        <Toaster position="bottom-right" />
+      </StoreProvider>
     </QueryClientProvider>
   );
 }
