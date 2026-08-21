@@ -11,6 +11,12 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { StoreProvider } from "@/context/StoreContext";
+import { Header } from "@/components/store/Header";
+import { Footer } from "@/components/store/Footer";
+import { CartDrawer } from "@/components/store/CartDrawer";
+import { SearchOverlay } from "@/components/store/SearchOverlay";
+import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (
@@ -77,11 +83,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "The Saree Edit" },
+      { name: "description", content: "A boutique edit of sarees and girls ethnic wear." },
+      { name: "author", content: "The Saree Edit" },
+      { property: "og:title", content: "The Saree Edit" },
+      { property: "og:description", content: "A boutique edit of sarees and girls ethnic wear." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
@@ -119,8 +125,19 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <StoreProvider>
+        <div className="flex min-h-screen flex-col">
+          <Header />
+          <main className="flex-1">
+            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+            <Outlet />
+          </main>
+          <Footer />
+        </div>
+        <CartDrawer />
+        <SearchOverlay />
+        <Toaster position="bottom-right" />
+      </StoreProvider>
     </QueryClientProvider>
   );
 }
