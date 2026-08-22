@@ -10,6 +10,49 @@ import girl3 from "@/assets/girl-3.jpg";
 import girl4 from "@/assets/girl-4.jpg";
 import heroDetail from "@/assets/hero-detail.jpg";
 import heroGirl from "@/assets/hero-girl.jpg";
+import saree7 from "@/assets/saree-7.jpg";
+import saree8 from "@/assets/saree-8.jpg";
+import saree9 from "@/assets/saree-9.jpg";
+import lehenga1 from "@/assets/lehenga-1.jpg";
+import kurta1 from "@/assets/kurta-1.jpg";
+import blouse1 from "@/assets/blouse-1.jpg";
+import girl5 from "@/assets/girl-5.jpg";
+import accessory1 from "@/assets/accessory-1.jpg";
+
+export const categories = [
+  "Sarees",
+  "Lehengas",
+  "Kurta Sets",
+  "Blouses",
+  "Girls Dresses",
+  "Ethnic Wear",
+  "Accessories",
+] as const;
+
+export const collections = [
+  "Festive Edit",
+  "New Arrivals",
+  "Everyday",
+  "Celebration",
+  "Bridal Heirloom",
+  "Temple Silk",
+  "Summer Cottons",
+  "Mother & Daughter",
+] as const;
+
+export const occasions = [
+  "Festive",
+  "Wedding Guest",
+  "Family Celebration",
+  "Everyday Elegance",
+  "Bridal",
+  "Reception",
+  "Puja & Temple",
+] as const;
+
+export type Category = (typeof categories)[number];
+export type Collection = (typeof collections)[number];
+export type Occasion = (typeof occasions)[number];
 
 export type Product = {
   id: string;
