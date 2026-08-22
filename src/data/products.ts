@@ -14,15 +14,15 @@ import heroGirl from "@/assets/hero-girl.jpg";
 export type Product = {
   id: string;
   name: string;
-  category: "Sarees" | "Girls Dresses" | "Ethnic Wear";
-  collection: "Festive Edit" | "New Arrivals" | "Everyday" | "Celebration";
+  category: Category;
+  collection: Collection;
   /** null = price on request until the real catalogue is supplied */
   price: number | null;
   compareAtPrice: number | null;
   images: string[];
   description: string;
   color: string;
-  occasion: "Festive" | "Wedding Guest" | "Family Celebration" | "Everyday Elegance";
+  occasion: Occasion;
   sizes: string[];
   available: boolean;
   featured: boolean;
