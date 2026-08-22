@@ -104,20 +104,29 @@ function Collections() {
 
       <div className="mx-auto max-w-[1400px] px-4 py-12 md:px-8 md:py-16">
         <div className="space-y-6">
+          <div>
+            <p className="eyebrow mb-3">Category</p>
           <div className="flex flex-wrap gap-2">
             {categories.map((c) =>
               chip(c, search.category === c, () => setFilter("category", c)),
             )}
           </div>
+          </div>
+          <div>
+            <p className="eyebrow mb-3">Collection</p>
           <div className="flex flex-wrap gap-2">
             {collectionList.map((c) =>
               chip(c, search.collection === c, () => setFilter("collection", c)),
             )}
           </div>
+          </div>
+          <div>
+            <p className="eyebrow mb-3">Occasion</p>
           <div className="flex flex-wrap gap-2">
             {occasions.map((o) =>
               chip(o, search.occasion === o, () => setFilter("occasion", o)),
             )}
+          </div>
           </div>
         </div>
 

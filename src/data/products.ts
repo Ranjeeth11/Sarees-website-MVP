@@ -10,19 +10,62 @@ import girl3 from "@/assets/girl-3.jpg";
 import girl4 from "@/assets/girl-4.jpg";
 import heroDetail from "@/assets/hero-detail.jpg";
 import heroGirl from "@/assets/hero-girl.jpg";
+import saree7 from "@/assets/saree-7.jpg";
+import saree8 from "@/assets/saree-8.jpg";
+import saree9 from "@/assets/saree-9.jpg";
+import lehenga1 from "@/assets/lehenga-1.jpg";
+import kurta1 from "@/assets/kurta-1.jpg";
+import blouse1 from "@/assets/blouse-1.jpg";
+import girl5 from "@/assets/girl-5.jpg";
+import accessory1 from "@/assets/accessory-1.jpg";
+
+export const categories = [
+  "Sarees",
+  "Lehengas",
+  "Kurta Sets",
+  "Blouses",
+  "Girls Dresses",
+  "Ethnic Wear",
+  "Accessories",
+] as const;
+
+export const collections = [
+  "Festive Edit",
+  "New Arrivals",
+  "Everyday",
+  "Celebration",
+  "Bridal Heirloom",
+  "Temple Silk",
+  "Summer Cottons",
+  "Mother & Daughter",
+] as const;
+
+export const occasions = [
+  "Festive",
+  "Wedding Guest",
+  "Family Celebration",
+  "Everyday Elegance",
+  "Bridal",
+  "Reception",
+  "Puja & Temple",
+] as const;
+
+export type Category = (typeof categories)[number];
+export type Collection = (typeof collections)[number];
+export type Occasion = (typeof occasions)[number];
 
 export type Product = {
   id: string;
   name: string;
-  category: "Sarees" | "Girls Dresses" | "Ethnic Wear";
-  collection: "Festive Edit" | "New Arrivals" | "Everyday" | "Celebration";
+  category: Category;
+  collection: Collection;
   /** null = price on request until the real catalogue is supplied */
   price: number | null;
   compareAtPrice: number | null;
   images: string[];
   description: string;
   color: string;
-  occasion: "Festive" | "Wedding Guest" | "Family Celebration" | "Everyday Elegance";
+  occasion: Occasion;
   sizes: string[];
   available: boolean;
   featured: boolean;
@@ -208,21 +251,152 @@ export const products: Product[] = [
     available: true,
     featured: false,
   },
+  {
+    id: "bridal-kanjivaram-saree",
+    name: "Bridal Kanjivaram Saree",
+    category: "Sarees",
+    collection: "Bridal Heirloom",
+    price: null,
+    compareAtPrice: null,
+    images: [saree7, heroDetail],
+    description:
+      "A crimson pure-silk Kanjivaram with a broad zari border — the heirloom drape for the wedding day itself.",
+    color: "Red",
+    occasion: "Bridal",
+    sizes: sareeSizes,
+    available: true,
+    featured: true,
+  },
+  {
+    id: "temple-border-silk-saree",
+    name: "Temple Border Silk Saree",
+    category: "Sarees",
+    collection: "Temple Silk",
+    price: null,
+    compareAtPrice: null,
+    images: [saree8],
+    description:
+      "Mustard silk with a plum temple border, woven for morning prayers and quiet festive days.",
+    color: "Gold",
+    occasion: "Puja & Temple",
+    sizes: sareeSizes,
+    available: true,
+    featured: true,
+  },
+  {
+    id: "handloom-cotton-saree",
+    name: "Handloom Cotton Saree",
+    category: "Sarees",
+    collection: "Summer Cottons",
+    price: null,
+    compareAtPrice: null,
+    images: [saree9],
+    description:
+      "A featherlight ivory handloom cotton with rose checks — the easiest drape for warm afternoons.",
+    color: "Ivory",
+    occasion: "Everyday Elegance",
+    sizes: sareeSizes,
+    available: true,
+    featured: true,
+  },
+  {
+    id: "champagne-embroidered-lehenga",
+    name: "Champagne Embroidered Lehenga",
+    category: "Lehengas",
+    collection: "Bridal Heirloom",
+    price: null,
+    compareAtPrice: null,
+    images: [lehenga1],
+    description:
+      "Champagne net with plum velvet borders and fine zardozi — cut for receptions and sangeet evenings.",
+    color: "Gold",
+    occasion: "Reception",
+    sizes: ["XS", "S", "M", "L", "XL"],
+    available: true,
+    featured: true,
+  },
+  {
+    id: "rose-kurta-palazzo-set",
+    name: "Rose Kurta & Palazzo Set",
+    category: "Kurta Sets",
+    collection: "Everyday",
+    price: null,
+    compareAtPrice: null,
+    images: [kurta1],
+    description:
+      "A dusty rose kurta with palazzo and dupatta, tonal embroidery throughout — comfort that still looks considered.",
+    color: "Rose",
+    occasion: "Everyday Elegance",
+    sizes: ["XS", "S", "M", "L", "XL"],
+    available: true,
+    featured: true,
+  },
+  {
+    id: "plum-zari-blouse",
+    name: "Plum Zari Blouse",
+    category: "Blouses",
+    collection: "Festive Edit",
+    price: null,
+    compareAtPrice: null,
+    images: [blouse1],
+    description:
+      "A plum silk blouse with gold zari motifs, made to finish the sarees you already love.",
+    color: "Plum",
+    occasion: "Festive",
+    sizes: ["30", "32", "34", "36", "38", "40"],
+    available: true,
+    featured: false,
+  },
+  {
+    id: "girls-gold-lehenga-set",
+    name: "Girls Gold Lehenga Set",
+    category: "Girls Dresses",
+    collection: "Mother & Daughter",
+    price: null,
+    compareAtPrice: null,
+    images: [girl5, heroGirl],
+    description:
+      "A champagne gold lehenga with a soft net dupatta, styled to match the Bridal Heirloom sarees.",
+    color: "Gold",
+    occasion: "Wedding Guest",
+    sizes: girlSizes,
+    available: true,
+    featured: true,
+  },
+  {
+    id: "temple-jewellery-set",
+    name: "Temple Jewellery & Potli Set",
+    category: "Accessories",
+    collection: "Temple Silk",
+    price: null,
+    compareAtPrice: null,
+    images: [accessory1],
+    description:
+      "Gold-tone jhumkas, bangles and an ivory silk potli — the small things that finish a look.",
+    color: "Gold",
+    occasion: "Puja & Temple",
+    sizes: ["One Size"],
+    available: true,
+    featured: false,
+  },
+  {
+    id: "mother-daughter-festive-duo",
+    name: "Mother & Daughter Festive Duo",
+    category: "Ethnic Wear",
+    collection: "Mother & Daughter",
+    price: null,
+    compareAtPrice: null,
+    images: [heroGirl, girl5],
+    description:
+      "A matched pair — a soft rose saree and a little girl's lehenga cut from the same weave.",
+    color: "Rose",
+    occasion: "Family Celebration",
+    sizes: ["Set"],
+    available: true,
+    featured: true,
+  },
 ];
 
 export const getProduct = (id: string) => products.find((p) => p.id === id);
 
-export const categories = ["Sarees", "Girls Dresses", "Ethnic Wear"] as const;
-export const collections = [
-  "Festive Edit",
-  "New Arrivals",
-  "Everyday",
-  "Celebration",
-] as const;
-export const occasions = [
-  "Festive",
-  "Wedding Guest",
-  "Family Celebration",
-  "Everyday Elegance",
-] as const;
-export const colors = ["Plum", "Rose", "Ivory", "Gold", "Charcoal"] as const;
+export const colors = ["Plum", "Rose", "Ivory", "Gold", "Charcoal", "Red"] as const;
