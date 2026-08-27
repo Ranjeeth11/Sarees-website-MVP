@@ -118,6 +118,10 @@
   --color-gold: var(--gold);
   --color-rose: var(--rose);
   --color-plum: var(--plum);
+  --color-terracotta: var(--terracotta);
+  --color-clay: var(--clay);
+  --color-sage: var(--sage);
+  --color-forest: var(--forest);
   --color-ivory: var(--ivory);
   --color-charcoal: var(--charcoal);
 }
