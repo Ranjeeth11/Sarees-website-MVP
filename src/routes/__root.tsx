@@ -11,12 +11,10 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { StoreProvider } from "@/context/StoreContext";
 import { Header } from "@/components/store/Header";
 import { Footer } from "@/components/store/Footer";
-import { CartDrawer } from "@/components/store/CartDrawer";
-import { SearchOverlay } from "@/components/store/SearchOverlay";
-import { Toaster } from "@/components/ui/sonner";
+import heroSaree from "@/assets/hero-saree.jpg";
+import { site } from "@/data/site";
 
 function NotFoundComponent() {
   return (
@@ -34,6 +32,7 @@ function NotFoundComponent() {
           >
             Go home
           </Link>
+          <a href={site.callUrl} className="ml-3 inline-flex items-center justify-center rounded-md border border-primary px-4 py-2 text-sm font-medium text-primary">Call us</a>
         </div>
       </div>
     </div>
@@ -84,10 +83,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "The Saree Edit" },
-      { name: "description", content: "A boutique edit of sarees and girls ethnic wear." },
+      { name: "description", content: "Handpicked sarees, ordered simply on WhatsApp." },
       { name: "author", content: "The Saree Edit" },
       { property: "og:title", content: "The Saree Edit" },
-      { property: "og:description", content: "A boutique edit of sarees and girls ethnic wear." },
+      { property: "og:description", content: "Handpicked sarees, ordered simply on WhatsApp." },
+      { property: "og:image", content: heroSaree },
+      { property: "og:image:alt", content: "The Saree Edit handpicked saree collection" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
@@ -131,19 +132,11 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <StoreProvider>
-        <div className="flex min-h-screen flex-col">
-          <Header />
-          <main className="flex-1">
-            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-            <Outlet />
-          </main>
-          <Footer />
-        </div>
-        <CartDrawer />
-        <SearchOverlay />
-        <Toaster position="bottom-right" />
-      </StoreProvider>
+      <div className="flex min-h-screen flex-col">
+        <Header />
+        <main className="flex-1"><Outlet /></main>
+        <Footer />
+      </div>
     </QueryClientProvider>
   );
 }

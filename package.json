@@ -7,7 +7,7 @@
     "dev": "vite dev",
     "build": "vite build",
     "build:dev": "vite build --mode development",
-    "preview": "vite preview",
+    "preview": "vercel dev",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
@@ -83,6 +83,7 @@
     "prettier": "^3.7.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
+    "vercel": "^59.10.0",
     "vite": "^8.2.0"
   }
 }

@@ -4,9 +4,7 @@ import { ProductCard } from "./ProductCard";
 export function ProductGrid({ products }: { products: Product[] }) {
   if (products.length === 0) {
     return (
-      <p className="py-16 text-center text-sm text-muted-foreground">
-        Nothing matches these filters yet. Try clearing a filter.
-      </p>
+      <p className="py-16 text-center text-sm text-muted-foreground">No sarees match this category yet. Please choose another category or message us on WhatsApp for help.</p>
     );
   }
   return (
