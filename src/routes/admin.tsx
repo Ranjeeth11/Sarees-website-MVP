@@ -213,7 +213,7 @@ function CatalogueManager() {
   }, [files]);
   useEffect(() => {
     if (!open) return;
-    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    formRef.current?.scrollIntoView({ behavior: "auto", block: "start" });
   }, [open, editing?.id]);
   function edit(product: Product | null) {
     setEditing(product);
@@ -662,7 +662,12 @@ function CatalogueManager() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((product) => (
-            <article key={product.id} className="overflow-hidden rounded-lg border">
+            <article
+              key={product.id}
+              className={`overflow-hidden rounded-lg border transition-colors ${
+                editing?.id === product.id ? "border-primary ring-2 ring-primary/20" : ""
+              }`}
+            >
               <div className="flex gap-4 p-4">
                 <img
                   src={product.image}
@@ -670,7 +675,9 @@ function CatalogueManager() {
                   className="h-36 w-24 rounded object-cover"
                 />
                 <div>
-                  <p className="text-xs text-muted-foreground">{product.category}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {editing?.id === product.id ? "Currently editing" : product.category}
+                  </p>
                   <h2 className="mt-1 font-display text-xl">{product.name}</h2>
                   <p className="mt-2 text-sm">₹{product.price?.toLocaleString("en-IN")}</p>
                   <p className="mt-2 text-xs text-muted-foreground">
