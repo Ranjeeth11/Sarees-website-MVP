@@ -201,6 +201,16 @@
     outline: 2px solid var(--plum);
     outline-offset: 3px;
   }
+
+  button:not(:disabled),
+  a[href],
+  label[for] {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
 }
 
 @utility eyebrow {

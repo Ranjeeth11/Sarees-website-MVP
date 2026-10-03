@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import {
@@ -24,6 +24,10 @@ export function CategoryManager() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const formRef = useRef<HTMLFormElement>(null);
+  useEffect(() => {
+    if (editing) formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [editing]);
   async function refresh() {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: categoriesKey }),
@@ -138,7 +142,11 @@ export function CategoryManager() {
         </p>
       ) : (
         <>
-          <form onSubmit={save} className="mt-6 flex flex-wrap items-end gap-3">
+          <form
+            ref={formRef}
+            onSubmit={save}
+            className="mt-6 scroll-mt-28 flex flex-wrap items-end gap-3"
+          >
             <label className="w-full max-w-sm text-sm">
               {editing ? "Edit category name" : "New category name"}
               <input
@@ -192,6 +200,7 @@ export function CategoryManager() {
                   </div>
                   <div className="flex gap-3">
                     <button
+                      type="button"
                       disabled={busy}
                       onClick={() => {
                         setEditing(category);
@@ -206,6 +215,7 @@ export function CategoryManager() {
                       Edit<span className="sr-only"> {category.name}</span>
                     </button>
                     <button
+                      type="button"
                       disabled={busy || usageUnknown || count > 0}
                       title={count > 0 ? "Move or delete assigned sarees first" : undefined}
                       onClick={() => {
@@ -237,6 +247,7 @@ export function CategoryManager() {
           </p>
           <div className="mt-3 flex gap-5">
             <button
+              type="button"
               disabled={busy}
               onClick={() => {
                 void remove();
