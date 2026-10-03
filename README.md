@@ -65,3 +65,9 @@ If you **already ran the previous schema**, run
 It preserves existing products and seeds the current categories. Deploy the updated
 app after running the migration. Category mutations require the same admin membership
 as product mutations.
+
+### Multiple product photos
+
+Each saree can have up to eight photos. Select multiple files in the admin form;
+the first file becomes the main image and the rest appear as a gallery on the
+product page. If the original schema is already installed, run+`supabase/migrations/20261003_product_images.sql` once before using multi-photo+uploads. The migration keeps existing product images.

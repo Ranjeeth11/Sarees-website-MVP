@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { catalogueKey, loadCatalogue } from "@/lib/catalogue";
 import { site } from "@/data/site";
 import { ProductGrid } from "@/components/store/ProductGrid";
+import { useState } from "react";
 export const Route = createFileRoute("/product/$id")({
   loader: async ({ params, context }) => {
     const products = await context.queryClient.fetchQuery({
@@ -22,6 +23,8 @@ export const Route = createFileRoute("/product/$id")({
 });
 function ProductDetail() {
   const { product, products } = Route.useLoaderData();
+  const images = product.images?.length ? product.images : [product.image];
+  const [selectedImage, setSelectedImage] = useState(images[0] ?? product.image);
   const related = products.filter((item) => item.id !== product.id).slice(0, 3);
   return (
     <div className="mx-auto max-w-[1400px] px-4 pb-20 pt-24 md:px-8 md:pt-32">
@@ -40,10 +43,25 @@ function ProductDetail() {
       <div className="mt-7 grid gap-9 md:grid-cols-2 md:gap-16">
         <div className="relative">
           <img
-            src={product.image}
+            src={selectedImage}
             alt={`${product.name}, ${product.fabric}`}
             className="aspect-3/4 w-full object-cover"
           />
+          {images.length > 1 && (
+            <div className="mt-3 grid grid-cols-5 gap-2">
+              {images.map((image, index) => (
+                <button
+                  key={image}
+                  type="button"
+                  onClick={() => setSelectedImage(image)}
+                  className={`overflow-hidden border ${selectedImage === image ? "border-primary" : "border-border"}`}
+                  aria-label={`View image ${index + 1}`}
+                >
+                  <img src={image} alt="" className="aspect-square w-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
           {product.isPlaceholder && (
             <span className="absolute right-3 top-3 bg-foreground/85 px-3 py-1.5 text-xs font-semibold tracking-[0.14em] text-background">
               SAMPLE IMAGE

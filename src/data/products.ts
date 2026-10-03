@@ -25,6 +25,7 @@ export type Product = {
   fabric: string;
   price: number | null;
   image: string;
+  images?: string[];
   description: string;
   color: string;
   available: boolean;

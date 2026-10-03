@@ -38,20 +38,43 @@ export async function loadCatalogue(): Promise<Product[]> {
   // are added in Admin. Once Supabase has any products, it becomes the source
   // of truth for the storefront.
   if (data.length === 0) return products;
-  return data.map((row) => ({
-    id: row.id,
-    name: row.name,
-    category: row.category,
-    fabric: row.fabric,
-    price: row.price,
-    description: row.description,
-    color: row.color,
-    available: row.available,
-    featured: row.featured,
-    isPlaceholder: false,
-    imagePath: row.image_path,
-    image: supabase!.storage.from("saree-images").getPublicUrl(row.image_path).data.publicUrl,
-  }));
+  const productIds = data.map((row) => row.id);
+  const { data: galleryRows, error: galleryError } = await supabase
+    .from("product_images")
+    .select("product_id, image_path, sort_order")
+    .in("product_id", productIds)
+    .order("sort_order", { ascending: true });
+  if (galleryError && galleryError.code !== "42P01")
+    throw new Error("Unable to load saree images. Please try again.");
+  return data.map((row) => {
+    const paths = (galleryRows ?? [])
+      .filter((image) => image.product_id === row.id)
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .map((image) => image.image_path);
+    const imagePaths = paths.length ? paths : [row.image_path];
+    const primaryPath = imagePaths[0] ?? row.image_path;
+    const images = imagePaths.map(
+      (path) => supabase!.storage.from("saree-images").getPublicUrl(path).data.publicUrl,
+    );
+    const primaryImage =
+      images[0] ??
+      supabase!.storage.from("saree-images").getPublicUrl(row.image_path).data.publicUrl;
+    return {
+      id: row.id,
+      name: row.name,
+      category: row.category,
+      fabric: row.fabric,
+      price: row.price,
+      description: row.description,
+      color: row.color,
+      available: row.available,
+      featured: row.featured,
+      isPlaceholder: false,
+      imagePath: primaryPath,
+      image: primaryImage,
+      images,
+    };
+  });
 }
 export function useCatalogue() {
   return useQuery({ queryKey: catalogueKey, queryFn: loadCatalogue, staleTime: 30_000 });

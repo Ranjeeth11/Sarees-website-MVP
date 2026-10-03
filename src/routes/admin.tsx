@@ -198,25 +198,21 @@ function CatalogueManager() {
   const [editing, setEditing] = useState<Product | null>(null);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(blank);
-  const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [deleting, setDeleting] = useState<Product | null>(null);
   useEffect(() => {
-    if (!file) {
-      setPreview("");
-      return;
-    }
-    const url = URL.createObjectURL(file);
-    setPreview(url);
-    return () => URL.revokeObjectURL(url);
-  }, [file]);
+    const urls = files.map((file) => URL.createObjectURL(file));
+    setPreviews(urls);
+    return () => urls.forEach((url) => URL.revokeObjectURL(url));
+  }, [files]);
   function edit(product: Product | null) {
     setEditing(product);
-    setFile(null);
+    setFiles([]);
     setError("");
     setMessage("");
     setForm(
@@ -255,31 +251,44 @@ function CatalogueManager() {
       setError("Select an existing category. It may have been renamed or deleted.");
       return;
     }
-    if (!file && !editing?.imagePath) {
+    if (!files.length && !editing?.imagePath) {
       setError("Upload a saree photo.");
       return;
     }
+    if (files.length > 8) {
+      setError("Upload up to 8 images for one saree.");
+      return;
+    }
     setBusy(true);
-    let uploaded: string | undefined;
+    const uploaded: string[] = [];
     try {
       const client = supabase!;
-      let imagePath = editing?.imagePath;
-      if (file) {
+      let imagePaths = editing?.images?.length
+        ? editing.images.map((image) => image.split("/saree-images/")[1] ?? image)
+        : editing?.imagePath
+          ? [editing.imagePath]
+          : [];
+      if (files.length) {
         const extensions: Record<string, string> = {
           "image/jpeg": "jpg",
           "image/png": "png",
           "image/webp": "webp",
         };
-        if (!extensions[file.type] || file.size > 5 * 1024 * 1024 || !file.size)
-          throw new Error("Choose a JPG, PNG or WebP image up to 5 MB.");
-        const path = `${crypto.randomUUID()}.${extensions[file.type]}`;
-        const { error: uploadError } = await client.storage
-          .from("saree-images")
-          .upload(path, file, { contentType: file.type });
-        if (uploadError) throw uploadError;
-        uploaded = path;
-        imagePath = path;
+        imagePaths = [];
+        for (const file of files) {
+          if (!extensions[file.type] || file.size > 5 * 1024 * 1024 || !file.size)
+            throw new Error("Choose JPG, PNG or WebP images up to 5 MB each.");
+          const path = `${crypto.randomUUID()}.${extensions[file.type]}`;
+          const { error: uploadError } = await client.storage
+            .from("saree-images")
+            .upload(path, file, { contentType: file.type });
+          if (uploadError) throw uploadError;
+          uploaded.push(path);
+          imagePaths.push(path);
+        }
       }
+      const imagePath = imagePaths[0];
+      if (!imagePath) throw new Error("Upload at least one saree photo.");
       const row = {
         ...form,
         name: form.name.trim(),
@@ -293,20 +302,41 @@ function CatalogueManager() {
         ? await client.from("products").update(row).eq("id", editing.id).select("id").single()
         : await client.from("products").insert(row).select("id").single();
       if (result.error) throw result.error;
+      const productId = editing?.id ?? result.data.id;
+      const { error: galleryDeleteError } = await client
+        .from("product_images")
+        .delete()
+        .eq("product_id", productId);
+      if (galleryDeleteError)
+        throw new Error(
+          "Run the product images migration in Supabase before saving multiple photos.",
+        );
+      const { error: galleryInsertError } = await client.from("product_images").insert(
+        imagePaths.map((path, index) => ({
+          product_id: productId,
+          image_path: path,
+          sort_order: index,
+        })),
+      );
+      if (galleryInsertError) throw galleryInsertError;
       let cleanupWarning = "";
-      if (uploaded && editing?.imagePath) {
+      const oldPaths =
+        editing?.images?.map((image) => image.split("/saree-images/")[1] ?? image) ??
+        (editing?.imagePath ? [editing.imagePath] : []);
+      const pathsToRemove = oldPaths.filter((path) => !imagePaths.includes(path));
+      if (pathsToRemove.length) {
         const { error: cleanupError } = await client.storage
           .from("saree-images")
-          .remove([editing.imagePath]);
+          .remove(pathsToRemove);
         if (cleanupError) cleanupWarning = " The previous photo could not be removed from storage.";
       }
       setOpen(false);
-      setFile(null);
+      setFiles([]);
       setEditing(null);
       setMessage(`Saree ${editing ? "updated" : "added"} successfully.${cleanupWarning}`);
       await refresh();
     } catch (error) {
-      if (uploaded) await supabase!.storage.from("saree-images").remove([uploaded]);
+      if (uploaded.length) await supabase!.storage.from("saree-images").remove(uploaded);
       setError(
         error instanceof Error ? error.message : "Could not save the saree. Please try again.",
       );
@@ -328,10 +358,11 @@ function CatalogueManager() {
         .single();
       if (deleteError) throw deleteError;
       let cleanupWarning = "";
-      if (deleting.imagePath) {
-        const { error: cleanupError } = await supabase!.storage
-          .from("saree-images")
-          .remove([deleting.imagePath]);
+      const paths =
+        deleting.images?.map((image) => image.split("/saree-images/")[1] ?? image) ??
+        (deleting.imagePath ? [deleting.imagePath] : []);
+      if (paths.length) {
+        const { error: cleanupError } = await supabase!.storage.from("saree-images").remove(paths);
         if (cleanupError) cleanupWarning = " Its photo could not be removed from storage.";
       }
       setDeleting(null);
@@ -413,29 +444,45 @@ function CatalogueManager() {
           </h2>
           <fieldset disabled={busy} className="grid gap-8 md:grid-cols-[280px_1fr]">
             <div>
-              {preview || editing?.image ? (
-                <img
-                  src={preview || editing?.image}
-                  alt="Saree preview"
-                  className="mb-4 aspect-3/4 w-full rounded-md object-cover"
-                />
+              {previews.length || editing?.images?.length || editing?.image ? (
+                <div className="mb-4 grid grid-cols-2 gap-2">
+                  {(previews.length
+                    ? previews
+                    : editing?.images?.length
+                      ? editing.images
+                      : [editing?.image]
+                  )
+                    .filter(Boolean)
+                    .map((image, index) => (
+                      <img
+                        key={`${image}-${index}`}
+                        src={image}
+                        alt={`Saree preview ${index + 1}`}
+                        className="aspect-3/4 w-full rounded-md object-cover"
+                      />
+                    ))}
+                </div>
               ) : (
                 <div className="mb-4 flex aspect-3/4 items-center justify-center rounded-md border border-dashed bg-background text-muted-foreground">
                   <Upload size={36} />
                 </div>
               )}
               <label className="block text-sm font-medium">
-                Saree photo
+                Saree photos
                 <input
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
+                  multiple
                   className="mt-3 block w-full text-xs file:mr-2 file:rounded file:border-0 file:bg-primary file:p-2 file:text-primary-foreground"
                   onChange={(e) => {
-                    setFile(e.target.files?.[0] ?? null);
+                    setFiles(Array.from(e.target.files ?? []));
                   }}
                 />
               </label>
-              <p className="mt-3 text-xs text-muted-foreground">JPG, PNG or WebP. Maximum 5 MB.</p>
+              <p className="mt-3 text-xs text-muted-foreground">
+                Select up to 8 JPG, PNG or WebP images. Maximum 5 MB each. The first image is the
+                main product image.
+              </p>
             </div>
             <div className="grid content-start gap-5 sm:grid-cols-2">
               <label className="text-sm sm:col-span-2">
@@ -545,7 +592,7 @@ function CatalogueManager() {
                   type="button"
                   onClick={() => {
                     setOpen(false);
-                    setFile(null);
+                    setFiles([]);
                     setError("");
                   }}
                   className="px-4 text-sm"
