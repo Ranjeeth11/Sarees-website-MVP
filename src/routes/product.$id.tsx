@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { catalogueKey, loadCatalogue } from "@/lib/catalogue";
 import { site } from "@/data/site";
 import { ProductGrid } from "@/components/store/ProductGrid";
-import { useState } from "react";
+import { ProductGallery } from "@/components/store/ProductGallery";
 export const Route = createFileRoute("/product/$id")({
   loader: async ({ params, context }) => {
     const products = await context.queryClient.fetchQuery({
@@ -24,7 +24,6 @@ export const Route = createFileRoute("/product/$id")({
 function ProductDetail() {
   const { product, products } = Route.useLoaderData();
   const images = product.images?.length ? product.images : [product.image];
-  const [selectedImage, setSelectedImage] = useState(images[0] ?? product.image);
   const related = products.filter((item) => item.id !== product.id).slice(0, 3);
   return (
     <div className="mx-auto max-w-[1400px] px-4 pb-20 pt-24 md:px-8 md:pt-32">
@@ -41,34 +40,13 @@ function ProductDetail() {
         </Link>
       </nav>
       <div className="mt-7 grid gap-9 md:grid-cols-2 md:gap-16">
-        <div className="relative">
-          <img
-            src={selectedImage}
-            alt={`${product.name}, ${product.fabric}`}
-            className="aspect-3/4 w-full object-cover"
-          />
-          {images.length > 1 && (
-            <div className="mt-3 grid grid-cols-5 gap-2">
-              {images.map((image, index) => (
-                <button
-                  key={image}
-                  type="button"
-                  onClick={() => setSelectedImage(image)}
-                  className={`overflow-hidden border ${selectedImage === image ? "border-primary" : "border-border"}`}
-                  aria-label={`View image ${index + 1}`}
-                >
-                  <img src={image} alt="" className="aspect-square w-full object-cover" />
-                </button>
-              ))}
-            </div>
-          )}
-          {product.isPlaceholder && (
-            <span className="absolute right-3 top-3 bg-foreground/85 px-3 py-1.5 text-xs font-semibold tracking-[0.14em] text-background">
-              SAMPLE IMAGE
-            </span>
-          )}
-        </div>
-        <div className="md:pt-3">
+        <ProductGallery
+          key={product.id}
+          images={images}
+          alt={`${product.name}, ${product.fabric}`}
+          isPlaceholder={product.isPlaceholder}
+        />
+        <div className="min-w-0 md:pt-3">
           <p className="eyebrow">{product.category}</p>
           <h1 className="mt-2 font-display text-4xl leading-tight md:text-5xl">{product.name}</h1>
           <p className="mt-4 text-lg text-muted-foreground">
@@ -86,19 +64,13 @@ function ProductDetail() {
           <p className="mt-3 text-center text-xs text-muted-foreground">
             Message us to check availability, price and delivery.
           </p>
-          <dl className="mt-9 space-y-3 border-t border-border pt-6 text-sm">
-            <div className="flex justify-between">
-              <dt className="text-muted-foreground">Fabric</dt>
-              <dd>{product.fabric}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-muted-foreground">Colour</dt>
-              <dd>{product.color}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-muted-foreground">Availability</dt>
-              <dd>{product.available ? "Available to enquire" : "Sold out"}</dd>
-            </div>
+          <dl className="mt-9 grid grid-cols-[6.5rem_minmax(0,1fr)] gap-x-4 gap-y-3 border-t border-border pt-6 text-sm">
+            <dt className="text-muted-foreground">Fabric</dt>
+            <dd className="text-right">{product.fabric}</dd>
+            <dt className="text-muted-foreground">Colour</dt>
+            <dd className="text-right">{product.color}</dd>
+            <dt className="text-muted-foreground">Availability</dt>
+            <dd className="text-right">{product.available ? "Available to enquire" : "Sold out"}</dd>
           </dl>
         </div>
       </div>
