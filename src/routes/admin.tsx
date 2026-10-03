@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Pencil, Trash2, Upload, LogOut } from "lucide-react";
 import { type Product } from "@/data/products";
@@ -205,11 +205,16 @@ function CatalogueManager() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [deleting, setDeleting] = useState<Product | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   useEffect(() => {
     const urls = files.map((file) => URL.createObjectURL(file));
     setPreviews(urls);
     return () => urls.forEach((url) => URL.revokeObjectURL(url));
   }, [files]);
+  useEffect(() => {
+    if (!open) return;
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [open]);
   function edit(product: Product | null) {
     setEditing(product);
     setFiles([]);
@@ -438,7 +443,11 @@ function CatalogueManager() {
         </p>
       )}
       {open && (
-        <form onSubmit={save} className="mb-10 rounded-lg border bg-secondary/20 p-5 md:p-8">
+        <form
+          ref={formRef}
+          onSubmit={save}
+          className="mb-10 scroll-mt-28 rounded-lg border bg-secondary/20 p-5 md:p-8"
+        >
           <h2 className="mb-6 font-display text-3xl">
             {editing ? "Edit saree" : "Add a new saree"}
           </h2>
@@ -672,6 +681,7 @@ function CatalogueManager() {
               </div>
               <div className="flex border-t">
                 <button
+                  type="button"
                   disabled={busy}
                   onClick={() => edit(product)}
                   className="flex min-h-12 flex-1 items-center justify-center gap-2 text-sm"
