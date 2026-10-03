@@ -34,6 +34,10 @@ export async function loadCatalogue(): Promise<Product[]> {
     .select("*")
     .order("created_at", { ascending: false });
   if (error) throw new Error("Unable to load sarees. Please try again.");
+  // Keep the original showcase catalogue visible until the first real products
+  // are added in Admin. Once Supabase has any products, it becomes the source
+  // of truth for the storefront.
+  if (data.length === 0) return products;
   return data.map((row) => ({
     id: row.id,
     name: row.name,
