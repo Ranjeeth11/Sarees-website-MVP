@@ -22,3 +22,46 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+## Saree admin (Supabase)
+
+Open `/admin` to sign in and add, edit or delete sarees. Fields include a photo,
+name, description, price in INR, category, fabric, colour, availability and featured
+status. Featured sarees appear on the homepage; all sarees appear in Collections.
+
+### Connect your project
+
+1. Create a Supabase project and run `supabase/schema.sql` in its SQL Editor.
+2. Under Authentication > Users, create your admin user with an email/password.
+   Copy the user's UUID and run:
+   `insert into public.admin_users (user_id) values ('YOUR_AUTH_USER_UUID');`
+3. Copy `.env.example` to `.env` and set the project URL and publishable key from
+   Supabase's Connect/API settings. Only the public publishable key belongs here;
+   never put a service-role or secret key in a `VITE_` variable.
+4. Restart `npm run dev`, open `/admin`, and sign in with that admin account.
+5. Add the same environment variables to your hosting provider before deploying.
+
+The database and storage policies restrict changes to explicitly granted admins.
+There is no public sign-up page. Images are public so customers can see them;
+JPG, PNG and WebP uploads are limited to 5 MB. Product deletion also removes its
+photo; a cleanup failure is reported and can be resolved in Supabase Storage.
+
+Without environment variables, the existing sample catalogue remains visible and
+admin shows a setup message. Once connected, the store uses the Supabase catalogue
+(including an empty state until you add products), replacing sample products.
+The local `saree-images` folder is preserved; select those files in the upload form.
+
+### Category management
+
+The `/admin` page also creates, edits and deletes categories. Product forms,
+collection filters and homepage tiles use this shared list. Renaming a category
+updates its assigned sarees automatically. Categories containing sarees cannot be
+deleted: edit those sarees to select another category, or delete them first.
+Category names must be unique (case insensitive), with 1–80 characters.
+
+For a **new Supabase project**, use the updated `supabase/schema.sql`.
+If you **already ran the previous schema**, run
+`supabase/migrations/20261003_categories.sql` once in the SQL Editor instead.
+It preserves existing products and seeds the current categories. Deploy the updated
+app after running the migration. Category mutations require the same admin membership
+as product mutations.
