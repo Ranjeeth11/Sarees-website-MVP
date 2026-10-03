@@ -214,7 +214,7 @@ function CatalogueManager() {
   useEffect(() => {
     if (!open) return;
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, [open]);
+  }, [open, editing?.id]);
   function edit(product: Product | null) {
     setEditing(product);
     setFiles([]);
