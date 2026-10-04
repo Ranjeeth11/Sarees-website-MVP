@@ -5,6 +5,7 @@ import { site } from "@/data/site";
 
 export function ProductCard({ product, index = 0 }: { product: Product; index?: number }) {
   const titleId = `product-${product.id}`;
+  const alternateImage = product.images?.[1];
 
   return (
     <motion.article
@@ -31,6 +32,19 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
           decoding="async"
           className="aspect-[4/5] w-full object-cover transition-transform duration-700 ease-[cubic-bezier(.22,1,.36,1)] group-hover:scale-[1.06]"
         />
+        {alternateImage && (
+          <img
+            src={alternateImage}
+            alt=""
+            width={800}
+            height={1067}
+            sizes="(min-width: 1024px) 30vw, (min-width: 768px) 31vw, 46vw"
+            loading="lazy"
+            decoding="async"
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 aspect-[4/5] h-full w-full object-cover opacity-0 transition-opacity duration-700 group-hover:opacity-100"
+          />
+        )}
         <span className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-foreground/45 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
         <span className="absolute bottom-4 right-4 translate-y-3 text-xs uppercase tracking-[0.18em] text-background opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">
           View piece ↗

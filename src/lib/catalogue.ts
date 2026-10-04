@@ -73,6 +73,7 @@ export async function loadCatalogue(): Promise<Product[]> {
       imagePath: primaryPath,
       image: primaryImage,
       images,
+      createdAt: row.created_at,
     };
   });
 }

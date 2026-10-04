@@ -32,6 +32,7 @@ export type Product = {
   featured: boolean;
   isPlaceholder: boolean;
   imagePath?: string;
+  createdAt?: string;
 };
 
 // PLACEHOLDER - replace with real photos

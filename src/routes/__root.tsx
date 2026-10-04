@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Header } from "@/components/store/Header";
 import { Footer } from "@/components/store/Footer";
+import { MobileNav } from "@/components/store/MobileNav";
 import heroSaree from "@/assets/hero-saree.jpg";
 import { site } from "@/data/site";
 
@@ -32,7 +33,12 @@ function NotFoundComponent() {
           >
             Go home
           </Link>
-          <a href={site.callUrl} className="ml-3 inline-flex items-center justify-center rounded-md border border-primary px-4 py-2 text-sm font-medium text-primary">Call us</a>
+          <a
+            href={site.callUrl}
+            className="ml-3 inline-flex items-center justify-center rounded-md border border-primary px-4 py-2 text-sm font-medium text-primary"
+          >
+            Call us
+          </a>
         </div>
       </div>
     </div>
@@ -133,8 +139,11 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <div className="flex min-h-screen flex-col">
         <Header />
-        <main className="flex-1"><Outlet /></main>
+        <main className="flex-1">
+          <Outlet />
+        </main>
         <Footer />
+        <MobileNav />
       </div>
     </QueryClientProvider>
   );

@@ -206,6 +206,8 @@ function CatalogueManager() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [deleting, setDeleting] = useState<Product | null>(null);
+  const [dirty, setDirty] = useState(false);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   useEffect(() => {
     const urls = files.map((file) => URL.createObjectURL(file));
@@ -216,9 +218,20 @@ function CatalogueManager() {
     if (!open) return;
     formRef.current?.scrollIntoView({ behavior: "auto", block: "start" });
   }, [open, editing?.id]);
+  useEffect(() => {
+    if (!open || !dirty) return;
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [open, dirty]);
   function edit(product: Product | null) {
     setEditing(product);
     setFiles([]);
+    setDirty(false);
+    setDragIndex(null);
     setError("");
     setMessage("");
     setForm(
@@ -341,6 +354,7 @@ function CatalogueManager() {
       setOpen(false);
       setFiles([]);
       setEditing(null);
+      setDirty(false);
       setMessage(`Saree ${editing ? "updated" : "added"} successfully.${cleanupWarning}`);
       await refresh();
     } catch (error) {
@@ -466,12 +480,42 @@ function CatalogueManager() {
                   )
                     .filter(Boolean)
                     .map((image, index) => (
-                      <img
+                      <div
                         key={`${image}-${index}`}
-                        src={image}
-                        alt={`Saree preview ${index + 1}`}
-                        className="aspect-3/4 w-full rounded-md object-cover"
-                      />
+                        draggable={Boolean(previews.length)}
+                        onDragStart={() => setDragIndex(index)}
+                        onDragOver={(event) => event.preventDefault()}
+                        onDrop={() => {
+                          if (dragIndex === null || !previews.length || dragIndex === index) return;
+                          const next = [...files];
+                          const [moved] = next.splice(dragIndex, 1);
+                          if (!moved) return;
+                          next.splice(index, 0, moved);
+                          setFiles(next);
+                          setDirty(true);
+                          setDragIndex(null);
+                        }}
+                        className="group relative cursor-grab active:cursor-grabbing"
+                      >
+                        <img
+                          src={image}
+                          alt={`Saree preview ${index + 1}`}
+                          className="aspect-3/4 w-full rounded-md object-cover"
+                        />
+                        {previews.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFiles(files.filter((_, fileIndex) => fileIndex !== index));
+                              setDirty(true);
+                            }}
+                            className="absolute right-2 top-2 rounded-full bg-foreground/80 px-2 py-1 text-xs text-background opacity-0 transition-opacity group-hover:opacity-100"
+                            aria-label={`Remove photo ${index + 1}`}
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
                     ))}
                 </div>
               ) : (
@@ -488,6 +532,7 @@ function CatalogueManager() {
                   className="mt-3 block w-full text-xs file:mr-2 file:rounded file:border-0 file:bg-primary file:p-2 file:text-primary-foreground"
                   onChange={(e) => {
                     setFiles(Array.from(e.target.files ?? []));
+                    setDirty(true);
                   }}
                 />
               </label>
@@ -503,7 +548,10 @@ function CatalogueManager() {
                   required
                   maxLength={160}
                   value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  onChange={(e) => {
+                    setForm({ ...form, name: e.target.value });
+                    setDirty(true);
+                  }}
                   className={inputClass}
                   placeholder="Kalamkari print saree"
                 />
@@ -517,7 +565,10 @@ function CatalogueManager() {
                   max="99999999.99"
                   step="0.01"
                   value={form.price}
-                  onChange={(e) => setForm({ ...form, price: e.target.value })}
+                  onChange={(e) => {
+                    setForm({ ...form, price: e.target.value });
+                    setDirty(true);
+                  }}
                   className={inputClass}
                   placeholder="850"
                 />
@@ -531,9 +582,10 @@ function CatalogueManager() {
                       ? form.category
                       : ""
                   }
-                  onChange={(e) =>
-                    setForm({ ...form, category: e.target.value as Product["category"] })
-                  }
+                  onChange={(e) => {
+                    setForm({ ...form, category: e.target.value as Product["category"] });
+                    setDirty(true);
+                  }}
                   className={inputClass}
                 >
                   <option value="" disabled>
@@ -552,7 +604,10 @@ function CatalogueManager() {
                   required
                   maxLength={160}
                   value={form.fabric}
-                  onChange={(e) => setForm({ ...form, fabric: e.target.value })}
+                  onChange={(e) => {
+                    setForm({ ...form, fabric: e.target.value });
+                    setDirty(true);
+                  }}
                   className={inputClass}
                   placeholder="Soft cotton"
                 />
@@ -563,7 +618,10 @@ function CatalogueManager() {
                   required
                   maxLength={160}
                   value={form.color}
-                  onChange={(e) => setForm({ ...form, color: e.target.value })}
+                  onChange={(e) => {
+                    setForm({ ...form, color: e.target.value });
+                    setDirty(true);
+                  }}
                   className={inputClass}
                   placeholder="Green and gold"
                 />
@@ -575,7 +633,10 @@ function CatalogueManager() {
                   maxLength={5000}
                   rows={5}
                   value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  onChange={(e) => {
+                    setForm({ ...form, description: e.target.value });
+                    setDirty(true);
+                  }}
                   className={inputClass}
                   placeholder="Describe the weave, border, blouse piece and care instructions…"
                 />
@@ -584,7 +645,10 @@ function CatalogueManager() {
                 <input
                   type="checkbox"
                   checked={form.available}
-                  onChange={(e) => setForm({ ...form, available: e.target.checked })}
+                  onChange={(e) => {
+                    setForm({ ...form, available: e.target.checked });
+                    setDirty(true);
+                  }}
                 />{" "}
                 Available in stock
               </label>
@@ -592,7 +656,10 @@ function CatalogueManager() {
                 <input
                   type="checkbox"
                   checked={form.featured}
-                  onChange={(e) => setForm({ ...form, featured: e.target.checked })}
+                  onChange={(e) => {
+                    setForm({ ...form, featured: e.target.checked });
+                    setDirty(true);
+                  }}
                 />{" "}
                 Featured on homepage
               </label>
@@ -605,6 +672,7 @@ function CatalogueManager() {
                   onClick={() => {
                     setOpen(false);
                     setFiles([]);
+                    setDirty(false);
                     setError("");
                   }}
                   className="px-4 text-sm"
