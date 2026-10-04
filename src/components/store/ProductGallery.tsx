@@ -64,6 +64,7 @@ export function ProductGallery({ images, alt, isPlaceholder }: ProductGalleryPro
                 src={image}
                 alt={alt}
                 draggable={false}
+                decoding="async"
                 loading={index === 0 ? "eager" : "lazy"}
                 className="h-full w-full object-cover"
               />
@@ -115,11 +116,17 @@ export function ProductGallery({ images, alt, isPlaceholder }: ProductGalleryPro
               aria-current={index === active}
               className={`overflow-hidden border-2 transition-colors ${index === active ? "border-primary" : "border-transparent"}`}
             >
-              <img src={image} alt="" className="aspect-square w-full object-cover" />
+              <img
+                src={image}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                className="aspect-square w-full object-cover"
+              />
             </button>
           ))}
         </div>
       )}
     </div>
   );
-              }
+}
