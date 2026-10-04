@@ -549,6 +549,270 @@ function CatalogueManager() {
                 Fabric
                 <input
                   required
+                  maxLenns[optimised.type] ?? extensions[file.type]}`;
+          const { error: uploadError } = await client.storage
+            .from("saree-images")
+            .upload(path, optimised, { contentType: optimised.type, cacheControl: "31536000" });
+          if (uploadError) throw uploadError;
+          uploaded.push(path);
+          imagePaths.push(path);
+        }
+      }
+      const imagePath = imagePaths[0];
+      if (!imagePath) throw new Error("Upload at least one saree photo.");
+      const row = {
+        ...form,
+        name: form.name.trim(),
+        description: form.description.trim(),
+        fabric: form.fabric.trim(),
+        color: form.color.trim(),
+        price,
+        image_path: imagePath,
+      };
+      const result = editing
+        ? await client.from("products").update(row).eq("id", editing.id).select("id").single()
+        : await client.from("products").insert(row).select("id").single();
+      if (result.error) throw result.error;
+      const productId = editing?.id ?? result.data.id;
+      const { error: galleryDeleteError } = await client
+        .from("product_images")
+        .delete()
+        .eq("product_id", productId);
+      if (galleryDeleteError)
+        throw new Error(
+          "Run the product images migration in Supabase before saving multiple photos.",
+        );
+      const { error: galleryInsertError } = await client.from("product_images").insert(
+        imagePaths.map((path, index) => ({
+          product_id: productId,
+          image_path: path,
+          sort_order: index,
+        })),
+      );
+      if (galleryInsertError) throw galleryInsertError;
+      let cleanupWarning = "";
+      const oldPaths =
+        editing?.images?.map((image) => image.split("/saree-images/")[1] ?? image) ??
+        (editing?.imagePath ? [editing.imagePath] : []);
+      const pathsToRemove = oldPaths.filter((path) => !imagePaths.includes(path));
+      if (pathsToRemove.length) {
+        const { error: cleanupError } = await client.storage
+          .from("saree-images")
+          .remove(pathsToRemove);
+        if (cleanupError) cleanupWarning = " The previous photo could not be removed from storage.";
+      }
+      setOpen(false);
+      setFiles([]);
+      setEditing(null);
+      setMessage(`Saree ${editing ? "updated" : "added"} successfully.${cleanupWarning}`);
+      await refresh();
+    } catch (error) {
+      if (uploaded.length) await supabase!.storage.from("saree-images").remove(uploaded);
+      setError(
+        error instanceof Error ? error.message : "Could not save the saree. Please try again.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function remove() {
+    if (!deleting) return;
+    setBusy(true);
+    setError("");
+    setMessage("");
+    try {
+      const { error: deleteError } = await supabase!
+        .from("products")
+        .delete()
+        .eq("id", deleting.id)
+        .select("id")
+        .single();
+      if (deleteError) throw deleteError;
+      let cleanupWarning = "";
+      const paths =
+        deleting.images?.map((image) => image.split("/saree-images/")[1] ?? image) ??
+        (deleting.imagePath ? [deleting.imagePath] : []);
+      if (paths.length) {
+        const { error: cleanupError } = await supabase!.storage.from("saree-images").remove(paths);
+        if (cleanupError) cleanupWarning = " Its photo could not be removed from storage.";
+      }
+      setDeleting(null);
+      setMessage(`Saree deleted.${cleanupWarning}`);
+      await refresh();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Could not delete saree.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  const filtered = products.filter((p) =>
+    `${p.name} ${p.category} ${p.color}`.toLowerCase().includes(search.toLowerCase()),
+  );
+  return (
+    <>
+      <div className="mb-8 grid grid-cols-3 gap-3">
+        {[
+          ["Total sarees", products.length],
+          ["Available", products.filter((p) => p.available).length],
+          ["Featured", products.filter((p) => p.featured).length],
+        ].map(([label, count]) => (
+          <div key={label} className="rounded-lg border bg-secondary/30 p-4 md:p-6">
+            <p className="text-xs text-muted-foreground">{label}</p>
+            <p className="mt-2 font-display text-3xl">{count}</p>
+          </div>
+        ))}
+      </div>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <label className="w-full max-w-sm text-sm">
+          Search sarees
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Name, colour or category"
+            className={inputClass}
+          />
+        </label>
+        <button
+          disabled={busy || categoriesPending || categoriesError || !categories.length}
+          onClick={() => edit(null)}
+          className={buttonClass}
+        >
+          <Plus size={18} /> Add saree
+        </button>
+      </div>
+      {categoriesError && (
+        <p role="alert" className="mb-5 text-red-700">
+          Could not load categories.{" "}
+          <button
+            onClick={() => {
+              void refetchCategories();
+            }}
+            className="underline"
+          >
+            Try again
+          </button>
+        </p>
+      )}
+      {!categoriesPending && !categoriesError && !categories.length && (
+        <p className="mb-5 text-sm text-muted-foreground">
+          Create a category above before adding a saree.
+        </p>
+      )}
+      {message && (
+        <p role="status" className="mb-5 rounded-md bg-green-50 p-4 text-sm text-green-800">
+          {message}
+        </p>
+      )}
+      {error && (
+        <p role="alert" className="mb-5 rounded-md bg-red-50 p-4 text-sm text-red-800">
+          {error}
+        </p>
+      )}
+      {open && (
+        <form
+          ref={formRef}
+          onSubmit={save}
+          className="mb-10 scroll-mt-28 rounded-lg border bg-secondary/20 p-5 md:p-8"
+        >
+          <h2 className="mb-6 font-display text-3xl">
+            {editing ? "Edit saree" : "Add a new saree"}
+          </h2>
+          <fieldset disabled={busy} className="grid gap-8 md:grid-cols-[280px_1fr]">
+            <div>
+              {previews.length || editing?.images?.length || editing?.image ? (
+                <div className="mb-4 grid grid-cols-2 gap-2">
+                  {(previews.length
+                    ? previews
+                    : editing?.images?.length
+                      ? editing.images
+                      : [editing?.image]
+                  )
+                    .filter(Boolean)
+                    .map((image, index) => (
+                      <img
+                        key={`${image}-${index}`}
+                        src={image}
+                        alt={`Saree preview ${index + 1}`}
+                        className="aspect-3/4 w-full rounded-md object-cover"
+                      />
+                    ))}
+                </div>
+              ) : (
+                <div className="mb-4 flex aspect-3/4 items-center justify-center rounded-md border border-dashed bg-background text-muted-foreground">
+                  <Upload size={36} />
+                </div>
+              )}
+              <label className="block text-sm font-medium">
+                Saree photos
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  className="mt-3 block w-full text-xs file:mr-2 file:rounded file:border-0 file:bg-primary file:p-2 file:text-primary-foreground"
+                  onChange={(e) => {
+                    setFiles(Array.from(e.target.files ?? []));
+                  }}
+                />
+              </label>
+              <p className="mt-3 text-xs text-muted-foreground">
+                Select up to 8 JPG, PNG or WebP images. Maximum 5 MB each; photos are
+                compressed automatically. The first image is the main product image.
+              </p>
+            </div>
+            <div className="grid content-start gap-5 sm:grid-cols-2">
+              <label className="text-sm sm:col-span-2">
+                Saree name
+                <input
+                  required
+                  maxLength={160}
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className={inputClass}
+                  placeholder="Kalamkari print saree"
+                />
+              </label>
+              <label className="text-sm">
+                Price (₹)
+                <input
+                  required
+                  type="number"
+                  min="0"
+                  max="99999999.99"
+                  step="0.01"
+                  value={form.price}
+                  onChange={(e) => setForm({ ...form, price: e.target.value })}
+                  className={inputClass}
+                  placeholder="850"
+                />
+              </label>
+              <label className="text-sm">
+                Category
+                <select
+                  required
+                  value={
+                    categories.some((category) => category.name === form.category)
+                      ? form.category
+                      : ""
+                  }
+                  onChange={(e) =>
+                    setForm({ ...form, category: e.target.value as Product["category"] })
+                  }
+                  className={inputClass}
+                >
+                  <option value="" disabled>
+                    Select a category
+                  </option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.name}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-sm">
+                Fabric
+                <input
+                  required
                   maxLens")
             .upload(path, file, { contentType: file.type });
           if (uploadError) throw uploadError;
