@@ -63,9 +63,12 @@ export function ProductGallery({ images, alt, isPlaceholder }: ProductGalleryPro
               <img
                 src={image}
                 alt={alt}
+                width={1200}
+                height={1600}
                 draggable={false}
                 decoding="async"
                 loading={index === 0 ? "eager" : "lazy"}
+                fetchPriority={index === 0 ? "high" : "auto"}
                 className="h-full w-full object-cover"
               />
             </div>

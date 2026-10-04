@@ -7,7 +7,11 @@ import { motion } from "framer-motion";
 
 const reveal = {
   hidden: { opacity: 0, y: 28 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] as const },
+  },
 };
 
 export const Route = createFileRoute("/")({
@@ -44,6 +48,10 @@ function Index() {
         <img
           src={heroSaree}
           alt="Silk saree with a richly woven border"
+          fetchPriority="high"
+          loading="eager"
+          width={1800}
+          height={1200}
           className="absolute inset-0 h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(25,12,16,.78),rgba(25,12,16,.2)_65%,rgba(25,12,16,.12))]" />
